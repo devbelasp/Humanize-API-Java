@@ -1,79 +1,98 @@
 package br.com.fiap.bo;
 
 import br.com.fiap.dao.FuncionarioDAO;
-import br.com.fiap.dao.CheckinHumorDAO;
+import br.com.fiap.dao.FuncionarioRecursoDAO;
 import br.com.fiap.to.FuncionarioTO;
+import br.com.fiap.to.RecursoBemEstarTO;
+import br.com.fiap.exception.AcessoNegadoException;
+
 import java.util.ArrayList;
 
 /**
- * Gerencia a lógica de negócio e orquestra as operações CRUD para a entidade Funcionário.
- * Inclui as regras de unicidade de e-mail e exclusão em cascata completa.
+ * Camada de Lógica de Negócios (Business Object).
+ * Centraliza as regras de negócio, de autorização e orquestra o acesso aos dados.
  */
 public class FuncionarioBO {
 
-    private final FuncionarioDAO dao = new FuncionarioDAO();
-    private final CheckinHumorDAO checkinDAO = new CheckinHumorDAO();
+    private final FuncionarioDAO funcionarioDAO = new FuncionarioDAO();
+    private final FuncionarioRecursoDAO funcRecursoDAO = new FuncionarioRecursoDAO(); // Gerencia Favoritos
+    private static final int ID_FUNCAO_RH = 5;
 
     /**
-     * Salva um novo Funcionário, verificando a unicidade do e-mail.
+     * Implementa a REGRA: Apenas usuários com ID_FUNCAO = 5 (RH) podem cadastrar novos funcionários.
      */
-    public FuncionarioTO save(FuncionarioTO funcionario) {
-        if (dao.findByEmail(funcionario.getEmail()) != null) {
-            return null;
+    public FuncionarioTO cadastrarNovoFuncionario(FuncionarioTO novoFuncionario, int solicitanteId)
+            throws AcessoNegadoException, RuntimeException {
+
+        // Validar Permissão do Solicitante
+        FuncionarioTO solicitante = funcionarioDAO.findByCodigo(solicitanteId);
+
+        if (solicitante == null || solicitante.getIdFuncao() != ID_FUNCAO_RH) {
+            throw new AcessoNegadoException("Acesso negado. Apenas usuários do RH podem realizar o cadastro de novos funcionários.");
         }
-        return dao.save(funcionario);
+
+        // Aplicar Regras de Negócio de Dados (Unicidade do E-mail)
+        if (funcionarioDAO.findByEmail(novoFuncionario.getEmail()) != null) {
+            throw new RuntimeException("O e-mail informado já está cadastrado.");
+        }
+
+        // Persistir o Novo Funcionário
+        FuncionarioTO resultado = funcionarioDAO.save(novoFuncionario);
+
+        if (resultado == null) {
+            throw new RuntimeException("Erro ao persistir o novo funcionário. Verifique os dados.");
+        }
+
+        return resultado;
     }
 
     /**
-     * Realiza o login, buscando o funcionário pelo e-mail e validando a senha.
+     * Realiza o login do funcionário.
      */
     public FuncionarioTO login(String email, String senha) {
-        FuncionarioTO funcionario = dao.buscarPorLogin(email, senha);
-        if (funcionario != null && funcionario.getSenha().equals(senha)) {
-            return funcionario;
-        }
-        return null;
+        return funcionarioDAO.buscarPorLogin(email, senha);
     }
 
-    /**
-     * Busca todos os funcionários cadastrados.
-     */
     public ArrayList<FuncionarioTO> findAll() {
-        return dao.findAll();
+        return funcionarioDAO.findAll();
     }
 
-    /**
-     * Busca um funcionário pelo seu código (ID).
-     */
     public FuncionarioTO findByCodigo(int id) {
-        return dao.findByCodigo(id);
+        return funcionarioDAO.findByCodigo(id);
     }
 
-    /**
-     * Atualiza um funcionário existente, verificando a unicidade do e-mail.
-     */
+    public FuncionarioTO findByEmail(String email) {
+        return funcionarioDAO.findByEmail(email);
+    }
+
     public FuncionarioTO update(FuncionarioTO funcionario) {
-        FuncionarioTO existente = dao.findByEmail(funcionario.getEmail());
 
-        if (existente != null && existente.getId() != funcionario.getId()) {
-            return null;
-        }
-
-        return dao.update(funcionario);
+        return funcionarioDAO.update(funcionario);
     }
 
-    /**
-     * Exclui um funcionário, limpando todas as suas dependências (check-ins e recursos) primeiro.
-     */
     public boolean delete(int id) {
 
-        // Limpa registros da tabela T_H_HUMOR (Check-ins de humor)
-        checkinDAO.deleteByFuncionarioId(id);
+        return funcionarioDAO.delete(id);
+    }
 
-        // Limpa registros da tabela T_H_FUNC_RECURSO (Recursos associados)
-        dao.deleteRecursosAssociados(id);
+    /**
+     * Adiciona um recurso à lista de favoritos do funcionário.
+     */
+    public boolean associarRecurso(int idFunc, int idRecurso) {
+        return funcRecursoDAO.associarRecurso(idFunc, idRecurso);
+    }
 
-        // Exclui o registro principal (T_H_FUNCIONARIO)
-        return dao.delete(id);
+    /**
+     * Remove um recurso da lista de favoritos do funcionário.
+     */
+    public boolean desassociarRecurso(int idFunc, int idRecurso) {
+        return funcRecursoDAO.desassociarRecurso(idFunc, idRecurso);
+    }
+
+    /**
+     * Lista todos os recursos favoritos de um funcionário.
+     */
+    public ArrayList<RecursoBemEstarTO> listarRecursosFavoritos(int idFunc) {
+        return funcRecursoDAO.findRecursosByFuncionario(idFunc);
     }
 }

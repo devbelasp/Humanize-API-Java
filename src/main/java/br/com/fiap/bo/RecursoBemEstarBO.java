@@ -16,7 +16,6 @@ public class RecursoBemEstarBO {
      * Salva um novo Recurso de Bem-Estar no banco.
      */
     public RecursoBemEstarTO save(RecursoBemEstarTO recurso) {
-        // Nenhuma regra de negócio complexa aqui, apenas chama o DAO.
         return dao.save(recurso);
     }
 

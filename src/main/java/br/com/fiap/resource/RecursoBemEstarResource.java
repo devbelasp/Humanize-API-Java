@@ -73,7 +73,6 @@ public class RecursoBemEstarResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findById(@PathParam("id") int id) {
 
-        // Chamada correta: bo.findById(id)
         RecursoBemEstarTO resultado = bo.findById(id);
 
         if (resultado != null) {

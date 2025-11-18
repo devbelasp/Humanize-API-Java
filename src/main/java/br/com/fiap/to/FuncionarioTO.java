@@ -8,35 +8,47 @@ import java.time.LocalDate;
 
 /**
  * Representa um Funcionário e suas credenciais no sistema Humanize.
- * Usado para operações CRUD (Cadastro, Atualização) e Fluxo de Login.
+ * Usado em operações CRUD, registro de check-in e fluxo de Login.
  */
 public class FuncionarioTO {
 
     private int id;
 
-    // Campo obrigatório para Cadastro
+    /**
+     * Nome completo do funcionário. (NM_FUNCIONARIO)
+     */
     @NotBlank(message = "O nome é obrigatório.")
     private String nome;
 
-    // Campo obrigatório e único para Login e Cadastro
+    /**
+     * E-mail único do funcionário, usado como login no sistema. (EM_FUNCIONARIO)
+     */
     @NotBlank(message = "O email para login é obrigatório.")
     @Email(message = "Formato de email inválido.")
     private String email;
 
-    // Campo obrigatório para Login e Cadastro
+    /**
+     * Senha criptografada (após processamento na API) ou raw (no momento do envio). (DS_SENHA)
+     */
     @NotBlank(message = "A senha é obrigatória.")
     private String senha;
 
-    // Campo obrigatório para Cadastro (DT_CONTRATACAO)
+    /**
+     * Data de início do contrato na empresa. Usada para cálculos de tempo de casa. (DT_CONTRATACAO)
+     */
     @NotNull(message = "A data de contratação é obrigatória.")
     @PastOrPresent(message = "A data de contratação não pode ser futura.")
     private LocalDate dataContratacao;
 
-    // FK: ID da Equipe - Obrigatório para o cadastro
+    /**
+     * Chave Estrangeira (FK): ID da Equipe a qual o funcionário pertence. (ID_EQUIPE)
+     */
     @NotNull(message = "O ID da equipe é obrigatório.")
     private int equipeId;
 
-    // FK: ID da Função (ROLE) - Para distinguir Funcionário Normal de Gestor/RH
+    /**
+     * Chave Estrangeira (FK): ID da Função/Perfil do funcionário (Ex: 5 para RH, 3/4 para Gestor). (ID_FUNCAO)
+     */
     @NotNull(message = "O ID da função (perfil) é obrigatório.")
     private int idFuncao;
 
@@ -54,8 +66,6 @@ public class FuncionarioTO {
         this.equipeId = equipeId;
         this.idFuncao = idFuncao;
     }
-
-    // Getters e Setters
 
     public int getId() {
         return id;

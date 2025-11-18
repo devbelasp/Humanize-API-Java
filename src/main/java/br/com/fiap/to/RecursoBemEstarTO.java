@@ -4,19 +4,28 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 /**
- * Representa um Recurso de Bem-Estar (vídeo, artigo, etc.).
- * Inclui validações para garantir que o nome, tipo e link (URL) são obrigatórios e válidos.
+ * Representa um Recurso de Bem-Estar (vídeo, artigo, meditação, etc.).
+ * Usado para operações CRUD na biblioteca de conteúdo da plataforma Humanize.
  */
 public class RecursoBemEstarTO {
 
     private int id; // PK: ID_RECURSO
 
+    /**
+     * Nome ou título do recurso. (NM_RECURSO)
+     */
     @NotBlank(message = "O nome/título do recurso é obrigatório.")
     private String nome;
 
+    /**
+     * Tipo de conteúdo do recurso (Ex: Vídeo, Áudio, Artigo, E-book). (DS_TIPO)
+     */
     @NotBlank(message = "O tipo de recurso (Artigo, Vídeo, Meditação) é obrigatório.")
     private String tipo;
 
+    /**
+     * Link ou URL de acesso ao recurso. (DS_LINK)
+     */
     @NotBlank(message = "O link (URL) do recurso é obrigatório.")
     @Pattern(regexp = "^(http|https)://.*", message = "O link deve ser uma URL válida e começar com http:// ou https://.")
     private String link;
