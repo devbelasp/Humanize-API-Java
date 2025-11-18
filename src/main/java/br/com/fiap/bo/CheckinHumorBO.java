@@ -1,22 +1,23 @@
 package br.com.fiap.bo;
 
 import br.com.fiap.dao.CheckinHumorDAO;
-import br.com.fiap.dao.FuncionarioDAO; // Necessário para a lógica de autorização
+import br.com.fiap.dao.FuncionarioDAO;
 import br.com.fiap.to.CheckinHumorTO;
-import br.com.fiap.to.FuncionarioTO; // Necessário para a lógica de autorização
+import br.com.fiap.to.FuncionarioTO;
 import br.com.fiap.to.RelatorioHumorTO;
-import br.com.fiap.exception.AcessoNegadoException; // Exceção para o acesso negado
+import br.com.fiap.to.CheckinHumorAnonimoTO; // NOVO IMPORT
+import br.com.fiap.exception.AcessoNegadoException;
 
 import java.util.ArrayList;
 
 /**
  * Gerencia a lógica de negócio do Questionário de Humor.
- * Aplica a regra de unicidade diária e de autorização de consulta.
+ * Aplica a regra de unicidade diária e de autorização de consulta (anonimizada).
  */
 public class CheckinHumorBO {
 
     private final CheckinHumorDAO dao = new CheckinHumorDAO();
-    private final FuncionarioDAO funcionarioDAO = new FuncionarioDAO(); // Para checar o perfil
+    private final FuncionarioDAO funcionarioDAO = new FuncionarioDAO();
     private static final int ID_FUNCAO_RH = 5;
 
     /**
@@ -38,13 +39,13 @@ public class CheckinHumorBO {
     }
 
     /**
-     * Retorna todo o histórico de Check-ins para auditoria.
-     * Implementa a REGRA: Apenas RH (ID_FUNCAO = 5) pode acessar o histórico bruto.
+     * Retorna todo o histórico de Check-ins para auditoria, sem o ID do funcionário (ANONIMIZADO).
+     * Implementa a REGRA: Apenas RH (ID_FUNCAO = 5) pode acessar.
      * @param solicitanteId ID do funcionário que está requisitando o histórico.
-     * @return O histórico completo de Check-ins.
+     * @return O histórico completo de Check-ins (Anonimizado).
      * @throws AcessoNegadoException Se o solicitante não for do RH.
      */
-    public ArrayList<CheckinHumorTO> findAll(int solicitanteId) throws AcessoNegadoException {
+    public ArrayList<CheckinHumorAnonimoTO> findAllAnonimo(int solicitanteId) throws AcessoNegadoException { // TIPO DE RETORNO ALTERADO
 
         // Validar Permissão do Solicitante
         FuncionarioTO solicitante = funcionarioDAO.findByCodigo(solicitanteId);
@@ -53,8 +54,8 @@ public class CheckinHumorBO {
             throw new AcessoNegadoException("Acesso negado. Apenas o RH pode consultar o histórico BRUTO de Check-ins.");
         }
 
-        // Se a permissão for concedida, busca os dados
-        return dao.findAll();
+        // Se a permissão for concedida, busca os dados anonimizados
+        return dao.findAllAnonimo(); 
     }
 
     /**

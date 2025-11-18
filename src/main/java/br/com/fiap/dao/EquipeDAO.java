@@ -21,7 +21,6 @@ public class EquipeDAO {
         ArrayList<EquipeTO> lista = new ArrayList<>();
         String sql = "SELECT ID_EQUIPE, NM_EQUIPE, DS_SETOR FROM T_H_EQUIPE ORDER BY NM_EQUIPE";
 
-        // Uso do try-with-resources para garantir o fechamento da conexão e do statement
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {

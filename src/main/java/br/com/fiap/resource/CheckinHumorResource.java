@@ -3,9 +3,10 @@ package br.com.fiap.resource;
 import br.com.fiap.bo.CheckinHumorBO;
 import br.com.fiap.bo.FuncionarioBO;
 import br.com.fiap.to.CheckinHumorTO;
-import br.com.fiap.to.FuncionarioTO;
 import br.com.fiap.to.RelatorioHumorTO;
-import br.com.fiap.exception.AcessoNegadoException; // Import da exceção
+import br.com.fiap.to.CheckinHumorAnonimoTO;
+import br.com.fiap.to.FuncionarioTO;
+import br.com.fiap.exception.AcessoNegadoException;
 
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -28,7 +29,7 @@ import java.util.stream.Collectors;
 public class CheckinHumorResource {
 
     private final CheckinHumorBO bo = new CheckinHumorBO();
-    private final FuncionarioBO funcionarioBO = new FuncionarioBO();
+    private final FuncionarioBO funcionarioBO = new FuncionarioBO(); // Instância adicionada
 
     // ID de Funções que têm acesso ao Dashboard (Gestores: 3, 4; RH: 5)
     private static final int ID_FUNCAO_RH = 5;
@@ -59,7 +60,7 @@ public class CheckinHumorResource {
 
     /**
      * Retorna os dados agregados (média de humor por equipe) para visualização no Dashboard.
-     * Implementa filtro de visualização por perfil.
+     * Implementa filtro de visualização por perfil (Gestor/RH).
      * @param funcionarioId ID do funcionário logado.
      * @return 200 OK (com lista filtrada) ou 403 FORBIDDEN (sem permissão).
      */
@@ -68,7 +69,7 @@ public class CheckinHumorResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDashboardAnalysis(@PathParam("funcionarioId") int funcionarioId) {
 
-        // Validar e Buscar o Perfil do Solicitante
+        // Valiada e Buscar o Perfil do Solicitante
         FuncionarioTO solicitante = funcionarioBO.findByCodigo(funcionarioId);
 
         if (solicitante == null) {
@@ -80,14 +81,14 @@ public class CheckinHumorResource {
         int idFuncao = solicitante.getIdFuncao();
         int idEquipe = solicitante.getEquipeId();
 
-        // Definir Permissão de Acesso ao Dashboard (Apenas RH e Gestores)
+        // Define Permissão de Acesso ao Dashboard (Apenas RH e Gestores)
         if (idFuncao != ID_FUNCAO_RH && idFuncao != ID_FUNCAO_TECH_LEAD && idFuncao != ID_FUNCAO_GERENTE) {
             return Response.status(Response.Status.FORBIDDEN)
                     .entity("Acesso negado. Apenas gestores e RH podem visualizar o dashboard de análise.")
                     .build();
         }
 
-        // Buscar Dados Agregados
+        // Busca Dados Agregados
         ArrayList<RelatorioHumorTO> listaCompleta = bo.consultarRelatorioHumor();
 
         if (listaCompleta == null || listaCompleta.isEmpty()) {
@@ -98,7 +99,7 @@ public class CheckinHumorResource {
 
         List<RelatorioHumorTO> listaFiltrada;
 
-        // Aplicar Lógica de Filtragem por Perfil
+        // Aplica Lógica de Filtragem por Perfil
         if (idFuncao == ID_FUNCAO_RH) {
             // Perfil RH (ID_FUNCAO = 5): Acesso a Todas as Equipes
             listaFiltrada = listaCompleta;
@@ -110,7 +111,7 @@ public class CheckinHumorResource {
                     .collect(Collectors.toList());
         }
 
-        // Retornar Resultado
+        // Retorna Resultado
         if (!listaFiltrada.isEmpty()) {
             return Response.ok(listaFiltrada).build();
         } else {
@@ -122,20 +123,20 @@ public class CheckinHumorResource {
 
     /**
      * Retorna o histórico BRUTO de todos os check-ins (dados de auditoria).
-     * Implementa a REGRA: Apenas RH pode consultar.
+     * Implementa a REGRA: Apenas RH pode consultar. O DTO de retorno é ANONIMIZADO.
      * @param solicitanteId ID do funcionário que está requisitando o histórico.
-     * @return 200 OK (com lista) ou 403 FORBIDDEN (sem permissão).
+     * @return 200 OK (com lista anonimizada) ou 403 FORBIDDEN (sem permissão).
      */
     @GET
-    @Path("/{solicitanteId}") // Novo Path para passar o ID
+    @Path("/{solicitanteId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAll(@PathParam("solicitanteId") int solicitanteId) {
 
-        ArrayList<CheckinHumorTO> lista;
+        ArrayList<CheckinHumorAnonimoTO> lista;
 
         try {
-            // Delega a lógica de Autorização (RH = 5) para o BO
-            lista = bo.findAll(solicitanteId);
+            // Chama o método BO que retorna a lista sem o ID_FUNC
+            lista = bo.findAllAnonimo(solicitanteId);
 
         } catch (AcessoNegadoException e) {
             // Captura exceção de Autorização e retorna 403 FORBIDDEN

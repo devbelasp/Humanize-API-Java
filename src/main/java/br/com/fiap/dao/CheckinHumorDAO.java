@@ -2,6 +2,7 @@ package br.com.fiap.dao;
 
 import br.com.fiap.to.CheckinHumorTO;
 import br.com.fiap.to.RelatorioHumorTO;
+import br.com.fiap.to.CheckinHumorAnonimoTO; // Importar o novo DTO
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,11 +14,12 @@ import java.util.ArrayList;
 
 /**
  * Gerencia o acesso a dados para o Questionário de Humor (T_H_HUMOR).
- * Inclui persistência (CREATE) e consultas agregadas (Análise para Dashboard).
+ * Inclui persistência (CREATE), consultas agregadas (Análise para Dashboard)
+ * e consulta do histórico bruto anonimizado.
  */
 public class CheckinHumorDAO {
 
-    // Método auxiliar para mapear um ResultSet para CheckinHumorTO
+    // Método auxiliar para mapear um ResultSet para CheckinHumorTO (Para Salvar/Consulta Individual)
     private CheckinHumorTO mapResultSetToTO(ResultSet rs) throws SQLException {
         CheckinHumorTO checkin = new CheckinHumorTO();
 
@@ -26,6 +28,28 @@ public class CheckinHumorDAO {
         checkin.setDataCheckin(rs.getDate("DT_CHECKIN").toLocalDate());
 
         // Mapeamento das 10 Perguntas (NR_ENERGIA, DS_SENTIMENTO, etc.)
+        checkin.setNivelEnergia(rs.getInt("NR_ENERGIA"));
+        checkin.setSentimento(rs.getString("DS_SENTIMENTO"));
+        checkin.setVolumeDemandas(rs.getString("TP_VOLUME"));
+        checkin.setBloqueios(rs.getString("DS_BLOQUEIO"));
+        checkin.setDesconexao(rs.getString("TP_EQUILIBRIO_VT"));
+        checkin.setNivelConexao(rs.getInt("NR_CONEXAO"));
+        checkin.setQualidadeInteracao(rs.getString("TP_INTERACAO"));
+        checkin.setQualidadeSono(rs.getString("TP_SONO"));
+        checkin.setStatusPausas(rs.getString("TP_PAUSA"));
+        checkin.setPequenoGanho(rs.getString("DS_PEQUENO_GANHO"));
+
+        return checkin;
+    }
+
+    // NOVO MÉTODO: Mapeamento para CheckinHumorAnonimoTO (Para Histórico de RH)
+    private CheckinHumorAnonimoTO mapResultSetToAnonimoTO(ResultSet rs) throws SQLException {
+        CheckinHumorAnonimoTO checkin = new CheckinHumorAnonimoTO();
+
+        checkin.setId(rs.getInt("ID_HUMOR"));
+        // Omitindo checkin.setFuncionarioId(rs.getInt("ID_FUNC")); para anonimização
+        checkin.setDataCheckin(rs.getDate("DT_CHECKIN").toLocalDate());
+
         checkin.setNivelEnergia(rs.getInt("NR_ENERGIA"));
         checkin.setSentimento(rs.getString("DS_SENTIMENTO"));
         checkin.setVolumeDemandas(rs.getString("TP_VOLUME"));
@@ -110,10 +134,11 @@ public class CheckinHumorDAO {
     }
 
     /**
-     * Busca todo o histórico de check-ins de humor (dados brutos).
+     * Busca todo o histórico de check-ins de humor (dados brutos) para auditoria,
+     * utilizando o DTO anonimizado.
      */
-    public ArrayList<CheckinHumorTO> findAll() {
-        ArrayList<CheckinHumorTO> lista = new ArrayList<>();
+    public ArrayList<CheckinHumorAnonimoTO> findAllAnonimo() {
+        ArrayList<CheckinHumorAnonimoTO> lista = new ArrayList<>();
         String sql = "SELECT * FROM T_H_HUMOR ORDER BY DT_CHECKIN DESC";
 
         try (Connection conn = ConnectionFactory.getConnection();
@@ -121,15 +146,18 @@ public class CheckinHumorDAO {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                lista.add(mapResultSetToTO(rs));
+                // Usa o método de mapeamento anonimizado
+                lista.add(mapResultSetToAnonimoTO(rs));
             }
 
         } catch (SQLException e) {
-            System.err.println("Erro ao buscar todos os check-ins no DAO: " + e.getMessage());
+            System.err.println("Erro ao buscar todos os check-ins anonimizados no DAO: " + e.getMessage());
         }
 
         return lista;
     }
+
+    // O método findAll() original foi removido/substituído pela versão anonimizada.
 
     /**
      * Realiza uma consulta SQL agregada para calcular a média de humor por equipe.
