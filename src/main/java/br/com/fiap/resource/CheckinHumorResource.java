@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class CheckinHumorResource {
 
     private final CheckinHumorBO bo = new CheckinHumorBO();
-    private final FuncionarioBO funcionarioBO = new FuncionarioBO(); // Instância adicionada
+    private final FuncionarioBO funcionarioBO = new FuncionarioBO();
 
     // ID de Funções que têm acesso ao Dashboard (Gestores: 3, 4; RH: 5)
     private static final int ID_FUNCAO_RH = 5;
@@ -69,7 +69,7 @@ public class CheckinHumorResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDashboardAnalysis(@PathParam("funcionarioId") int funcionarioId) {
 
-        // Valiada e Buscar o Perfil do Solicitante
+        // Valida e Busca o Perfil do Solicitante
         FuncionarioTO solicitante = funcionarioBO.findByCodigo(funcionarioId);
 
         if (solicitante == null) {
