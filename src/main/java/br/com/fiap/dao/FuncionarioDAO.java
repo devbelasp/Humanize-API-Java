@@ -68,7 +68,7 @@ public class FuncionarioDAO {
                 "VALUES (T_H_FUNCIONARIO_SEQ.NEXTVAL, ?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(sql, new String[] { "ID_FUNC" })) {
 
             ps.setString(1, funcionario.getNome());
             ps.setString(2, funcionario.getEmail());
@@ -88,7 +88,7 @@ public class FuncionarioDAO {
                 return funcionario;
             }
         } catch (SQLException e) {
-            System.err.println("Erro SQL no SAVE: " + e.getMessage());
+            System.err.println("Erro ao salvar funcionário (SQL): " + e.getMessage());
         }
         return null;
     }
