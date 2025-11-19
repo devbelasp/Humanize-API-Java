@@ -25,19 +25,13 @@ public class FuncionarioDAO {
         return funcionario;
     }
 
-    /**
-     * Busca um funcionário por email e senha (Login).
-     */
+
     public FuncionarioTO buscarPorLogin(String email, String senha) {
         String sql = "SELECT * FROM T_H_FUNCIONARIO WHERE EM_FUNCIONARIO = ? AND DS_SENHA = ?";
-
-        // Uso de try-with-resources para fechar a conexão automaticamente
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, email);
             ps.setString(2, senha);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToTO(rs);
@@ -49,17 +43,12 @@ public class FuncionarioDAO {
         return null;
     }
 
-    /**
-     * Busca um funcionário apenas pelo e-mail (Validação de unicidade).
-     */
     public FuncionarioTO findByEmail(String email) {
         String sql = "SELECT * FROM T_H_FUNCIONARIO WHERE EM_FUNCIONARIO = ?";
 
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, email);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapResultSetToTO(rs);
@@ -73,7 +62,6 @@ public class FuncionarioDAO {
 
     /**
      * Salva um novo Funcionário no banco de dados, recuperando o ID gerado.
-     * RESOLVE O PROBLEMA DE RETORNO NULO APÓS SUCESSO.
      */
     public FuncionarioTO save(FuncionarioTO funcionario) {
         String sql = "INSERT INTO T_H_FUNCIONARIO (ID_FUNC, NM_FUNCIONARIO, EM_FUNCIONARIO, DS_SENHA, DT_CONTRATACAO, ID_EQUIPE, ID_FUNCAO) " +
@@ -92,23 +80,19 @@ public class FuncionarioDAO {
             int linhasAfetadas = ps.executeUpdate();
 
             if (linhasAfetadas > 0) {
-                // Tenta buscar o ID gerado para atualizar o objeto antes de retornar
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         funcionario.setId(rs.getInt(1));
                     }
                 }
-                return funcionario; // Retorna o objeto de sucesso com o novo ID
+                return funcionario;
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao salvar funcionário (SQL): " + e.getMessage());
+            System.err.println("Erro SQL no SAVE: " + e.getMessage());
         }
-        return null; // Retorna null em caso de falha ou exceção
+        return null;
     }
 
-    /**
-     * Retorna todos os funcionários cadastrados.
-     */
     public ArrayList<FuncionarioTO> findAll() {
         ArrayList<FuncionarioTO> lista = new ArrayList<>();
         String sql = "SELECT * FROM T_H_FUNCIONARIO ORDER BY ID_FUNC";
@@ -126,9 +110,6 @@ public class FuncionarioDAO {
         return lista;
     }
 
-    /**
-     * Busca um funcionário pelo ID.
-     */
     public FuncionarioTO findByCodigo(int id) {
         String sql = "SELECT * FROM T_H_FUNCIONARIO WHERE ID_FUNC = ?";
 
@@ -148,9 +129,6 @@ public class FuncionarioDAO {
         return null;
     }
 
-    /**
-     * Atualiza os dados de um funcionário.
-     */
     public FuncionarioTO update(FuncionarioTO funcionario) {
         String sql = "UPDATE T_H_FUNCIONARIO SET NM_FUNCIONARIO = ?, EM_FUNCIONARIO = ?, DS_SENHA = ?, DT_CONTRATACAO = ?, ID_EQUIPE = ?, ID_FUNCAO = ? WHERE ID_FUNC = ?";
 
@@ -174,9 +152,6 @@ public class FuncionarioDAO {
         return null;
     }
 
-    /**
-     * Exclui um funcionário pelo ID.
-     */
     public boolean delete(int id) {
         String sql = "DELETE FROM T_H_FUNCIONARIO WHERE ID_FUNC = ?";
 
@@ -192,9 +167,6 @@ public class FuncionarioDAO {
         }
     }
 
-    /**
-     * Remove os recursos associados ao funcionário (tabela associativa) antes da exclusão completa.
-     */
     public void deleteRecursosAssociados(int funcionarioId) {
         String sql = "DELETE FROM T_H_FUNC_RECURSO WHERE ID_FUNC = ?";
 
