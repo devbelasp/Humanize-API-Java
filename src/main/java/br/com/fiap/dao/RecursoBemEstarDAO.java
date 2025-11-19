@@ -1,11 +1,7 @@
 package br.com.fiap.dao;
 
 import br.com.fiap.to.RecursoBemEstarTO;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 
 /**
@@ -27,14 +23,11 @@ public class RecursoBemEstarDAO {
      * Salva um novo Recurso de Bem-Estar no banco de dados.
      */
     public RecursoBemEstarTO save(RecursoBemEstarTO recurso) {
-
         String sql = "INSERT INTO T_H_RECURSO_BEM_ESTAR (ID_RECURSO, NM_RECURSO, DS_LINK, DS_TIPO) " +
                 "VALUES (T_H_RECURSO_BEM_ESTAR_SEQ.NEXTVAL, ?, ?, ?)";
 
-        boolean sucesso = false;
-
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(sql, new String[] { "ID_RECURSO" })) {
 
             ps.setString(1, recurso.getNome());
             ps.setString(2, recurso.getLink());
@@ -43,20 +36,17 @@ public class RecursoBemEstarDAO {
             int linhasAfetadas = ps.executeUpdate();
 
             if (linhasAfetadas > 0) {
-                sucesso = true;
-
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         recurso.setId(rs.getInt(1));
                     }
                 }
+                return recurso;
             }
-
         } catch (SQLException e) {
             System.err.println("Erro ao salvar recurso no DAO: " + e.getMessage());
         }
-
-        return sucesso ? recurso : null;
+        return null;
     }
 
     /**
@@ -73,11 +63,9 @@ public class RecursoBemEstarDAO {
             while (rs.next()) {
                 lista.add(mapResultSetToTO(rs));
             }
-
         } catch (SQLException e) {
             System.err.println("Erro ao buscar todos os recursos no DAO: " + e.getMessage());
         }
-
         return lista;
     }
 
@@ -92,13 +80,11 @@ public class RecursoBemEstarDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setInt(1, id);
-
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     recurso = mapResultSetToTO(rs);
                 }
             }
-
         } catch (SQLException e) {
             System.err.println("Erro ao buscar recurso por ID no DAO: " + e.getMessage());
         }
@@ -111,8 +97,6 @@ public class RecursoBemEstarDAO {
     public RecursoBemEstarTO update(RecursoBemEstarTO recurso) {
         String sql = "UPDATE T_H_RECURSO_BEM_ESTAR SET NM_RECURSO = ?, DS_LINK = ?, DS_TIPO = ? WHERE ID_RECURSO = ?";
 
-        boolean sucesso = false;
-
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -121,17 +105,13 @@ public class RecursoBemEstarDAO {
             ps.setString(3, recurso.getTipo());
             ps.setInt(4, recurso.getId());
 
-            int linhasAfetadas = ps.executeUpdate();
-
-            if (linhasAfetadas > 0) {
-                sucesso = true;
+            if (ps.executeUpdate() > 0) {
+                return recurso;
             }
-
         } catch (SQLException e) {
             System.err.println("Erro ao atualizar recurso no DAO: " + e.getMessage());
         }
-
-        return sucesso ? recurso : null;
+        return null;
     }
 
     /**

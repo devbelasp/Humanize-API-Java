@@ -1,5 +1,6 @@
 package br.com.fiap.bo;
 
+import br.com.fiap.dao.CheckinHumorDAO;
 import br.com.fiap.dao.FuncionarioDAO;
 import br.com.fiap.dao.FuncionarioRecursoDAO;
 import br.com.fiap.to.FuncionarioTO;
@@ -15,7 +16,10 @@ import java.util.ArrayList;
 public class FuncionarioBO {
 
     private final FuncionarioDAO funcionarioDAO = new FuncionarioDAO();
-    private final FuncionarioRecursoDAO funcRecursoDAO = new FuncionarioRecursoDAO(); // Gerencia Favoritos
+    private final FuncionarioRecursoDAO funcRecursoDAO = new FuncionarioRecursoDAO();
+    // Adicionei o DAO de Checkin para poder limpar o histórico ao excluir
+    private final CheckinHumorDAO checkinDAO = new CheckinHumorDAO();
+
     private static final int ID_FUNCAO_RH = 5;
 
     /**
@@ -36,11 +40,10 @@ public class FuncionarioBO {
             throw new RuntimeException("O e-mail informado já está cadastrado.");
         }
 
-        // Persistir o Novo Funcionário
         FuncionarioTO resultado = funcionarioDAO.save(novoFuncionario);
 
         if (resultado == null) {
-            throw new RuntimeException("Erro ao persistir o novo funcionário. Verifique os dados.");
+            throw new RuntimeException("Erro ao persistir o novo funcionário no banco de dados.");
         }
 
         return resultado;
@@ -66,11 +69,17 @@ public class FuncionarioBO {
     }
 
     public FuncionarioTO update(FuncionarioTO funcionario) {
-
         return funcionarioDAO.update(funcionario);
     }
 
+    /**
+     * Exclusão em Cascata Manual (BO Orchestration).
+     * Remove dependências (Check-ins e Favoritos) antes de remover o usuário.
+     */
     public boolean delete(int id) {
+        checkinDAO.deleteByFuncionarioId(id);
+
+        funcionarioDAO.deleteRecursosAssociados(id);
 
         return funcionarioDAO.delete(id);
     }

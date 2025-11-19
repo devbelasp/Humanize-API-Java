@@ -2,12 +2,11 @@ package br.com.fiap.dao;
 
 import br.com.fiap.to.CheckinHumorTO;
 import br.com.fiap.to.RelatorioHumorTO;
-import br.com.fiap.to.CheckinHumorAnonimoTO; // Importar o novo DTO
+import br.com.fiap.to.CheckinHumorAnonimoTO;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,12 +21,11 @@ public class CheckinHumorDAO {
     // Método auxiliar para mapear um ResultSet para CheckinHumorTO (Para Salvar/Consulta Individual)
     private CheckinHumorTO mapResultSetToTO(ResultSet rs) throws SQLException {
         CheckinHumorTO checkin = new CheckinHumorTO();
-
         checkin.setId(rs.getInt("ID_HUMOR"));
         checkin.setFuncionarioId(rs.getInt("ID_FUNC"));
         checkin.setDataCheckin(rs.getDate("DT_CHECKIN").toLocalDate());
 
-        // Mapeamento das 10 Perguntas (NR_ENERGIA, DS_SENTIMENTO, etc.)
+        // Mapeamento das 10 Perguntas
         checkin.setNivelEnergia(rs.getInt("NR_ENERGIA"));
         checkin.setSentimento(rs.getString("DS_SENTIMENTO"));
         checkin.setVolumeDemandas(rs.getString("TP_VOLUME"));
@@ -38,18 +36,14 @@ public class CheckinHumorDAO {
         checkin.setQualidadeSono(rs.getString("TP_SONO"));
         checkin.setStatusPausas(rs.getString("TP_PAUSA"));
         checkin.setPequenoGanho(rs.getString("DS_PEQUENO_GANHO"));
-
         return checkin;
     }
 
-    // NOVO MÉTODO: Mapeamento para CheckinHumorAnonimoTO (Para Histórico de RH)
+    // Método auxiliar: Mapeamento para CheckinHumorAnonimoTO (Para Histórico de RH)
     private CheckinHumorAnonimoTO mapResultSetToAnonimoTO(ResultSet rs) throws SQLException {
         CheckinHumorAnonimoTO checkin = new CheckinHumorAnonimoTO();
-
         checkin.setId(rs.getInt("ID_HUMOR"));
-        // Omitindo checkin.setFuncionarioId(rs.getInt("ID_FUNC")); para anonimização
         checkin.setDataCheckin(rs.getDate("DT_CHECKIN").toLocalDate());
-
         checkin.setNivelEnergia(rs.getInt("NR_ENERGIA"));
         checkin.setSentimento(rs.getString("DS_SENTIMENTO"));
         checkin.setVolumeDemandas(rs.getString("TP_VOLUME"));
@@ -60,12 +54,12 @@ public class CheckinHumorDAO {
         checkin.setQualidadeSono(rs.getString("TP_SONO"));
         checkin.setStatusPausas(rs.getString("TP_PAUSA"));
         checkin.setPequenoGanho(rs.getString("DS_PEQUENO_GANHO"));
-
         return checkin;
     }
 
     /**
      * Busca um check-in específico pelo ID do funcionário e data.
+     * Útil para validar duplicidade diária.
      */
     public CheckinHumorTO findByFuncionarioAndDate(int funcionarioId, LocalDate data) {
         CheckinHumorTO checkin = null;
@@ -89,21 +83,17 @@ public class CheckinHumorDAO {
     }
 
     /**
-     * Salva um novo registro de Check-in de Humor com 10 perguntas.
+     * Salva um novo registro de Check-in de Humor.
      */
     public CheckinHumorTO save(CheckinHumorTO checkin) {
-
         String sql = "INSERT INTO T_H_HUMOR (ID_HUMOR, ID_FUNC, DT_CHECKIN, NR_ENERGIA, DS_SENTIMENTO, TP_VOLUME, DS_BLOQUEIO, TP_EQUILIBRIO_VT, NR_CONEXAO, TP_INTERACAO, TP_SONO, TP_PAUSA, DS_PEQUENO_GANHO) " +
                 "VALUES (T_H_HUMOR_SEQ.NEXTVAL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        boolean sucesso = false;
-
         try (Connection conn = ConnectionFactory.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(sql, new String[] { "ID_HUMOR" })) {
 
             ps.setInt(1, checkin.getFuncionarioId());
             ps.setTimestamp(2, Timestamp.valueOf(checkin.getDataCheckin().atStartOfDay()));
-
             ps.setInt(3, checkin.getNivelEnergia());
             ps.setString(4, checkin.getSentimento());
             ps.setString(5, checkin.getVolumeDemandas());
@@ -118,24 +108,22 @@ public class CheckinHumorDAO {
             int linhasAfetadas = ps.executeUpdate();
 
             if (linhasAfetadas > 0) {
-                sucesso = true;
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         checkin.setId(rs.getInt(1));
                     }
                 }
+                return checkin;
             }
-
         } catch (SQLException e) {
             System.err.println("Erro ao salvar check-in de humor no DAO: " + e.getMessage());
         }
-
-        return sucesso ? checkin : null;
+        return null;
     }
 
     /**
-     * Busca todo o histórico de check-ins de humor (dados brutos) para auditoria,
-     * utilizando o DTO anonimizado.
+     * Busca todo o histórico de check-ins de humor (dados brutos) para auditoria.
+     * Utiliza o DTO anonimizado.
      */
     public ArrayList<CheckinHumorAnonimoTO> findAllAnonimo() {
         ArrayList<CheckinHumorAnonimoTO> lista = new ArrayList<>();
@@ -146,26 +134,19 @@ public class CheckinHumorDAO {
              ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-                // Usa o método de mapeamento anonimizado
                 lista.add(mapResultSetToAnonimoTO(rs));
             }
-
         } catch (SQLException e) {
             System.err.println("Erro ao buscar todos os check-ins anonimizados no DAO: " + e.getMessage());
         }
-
         return lista;
     }
-
-    // O método findAll() original foi removido/substituído pela versão anonimizada.
 
     /**
      * Realiza uma consulta SQL agregada para calcular a média de humor por equipe.
      */
     public ArrayList<RelatorioHumorTO> findMediaHumorPorEquipe() {
         ArrayList<RelatorioHumorTO> lista = new ArrayList<>();
-
-        // A query usa o campo NR_ENERGIA para a média.
         String sql = "SELECT e.ID_EQUIPE, e.NM_EQUIPE, AVG(c.NR_ENERGIA) AS MEDIA_HUMOR, COUNT(c.ID_HUMOR) AS TOTAL_CHECKINS " +
                 "FROM T_H_HUMOR c " +
                 "JOIN T_H_FUNCIONARIO f ON c.ID_FUNC = f.ID_FUNC " +
@@ -186,16 +167,15 @@ public class CheckinHumorDAO {
                 );
                 lista.add(relatorio);
             }
-
         } catch (SQLException e) {
             System.err.println("Erro ao buscar média de humor por equipe no DAO: " + e.getMessage());
         }
-
         return lista;
     }
 
     /**
-     * Exclui todos os registros de check-in de um funcionário específico (antes de excluir o funcionário).
+     * Exclui todos os registros de check-in de um funcionário específico.
+     * Útil para limpeza de dados antes de excluir um funcionário (Cascade manual).
      */
     public void deleteByFuncionarioId(int funcionarioId) {
         String sql = "DELETE FROM T_H_HUMOR WHERE ID_FUNC = ?";
@@ -207,7 +187,7 @@ public class CheckinHumorDAO {
             ps.executeUpdate();
 
         } catch (SQLException e) {
-            System.err.println("Erro ao excluir check-ins do funcionário no DAO: " + e.getMessage());
+            System.err.println("Erro ao excluir check-ins do funcionário: " + e.getMessage());
         }
     }
 }
