@@ -30,7 +30,8 @@ public class FuncionarioDAO {
      */
     public FuncionarioTO buscarPorLogin(String email, String senha) {
         String sql = "SELECT * FROM T_H_FUNCIONARIO WHERE EM_FUNCIONARIO = ? AND DS_SENHA = ?";
-        
+
+        // Uso de try-with-resources para fechar a conexão automaticamente
         try (Connection conn = ConnectionFactory.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
@@ -71,7 +72,8 @@ public class FuncionarioDAO {
     }
 
     /**
-     * Salva um novo funcionário no banco de dados.
+     * Salva um novo Funcionário no banco de dados, recuperando o ID gerado.
+     * RESOLVE O PROBLEMA DE RETORNO NULO APÓS SUCESSO.
      */
     public FuncionarioTO save(FuncionarioTO funcionario) {
         String sql = "INSERT INTO T_H_FUNCIONARIO (ID_FUNC, NM_FUNCIONARIO, EM_FUNCIONARIO, DS_SENHA, DT_CONTRATACAO, ID_EQUIPE, ID_FUNCAO) " +
@@ -88,18 +90,20 @@ public class FuncionarioDAO {
             ps.setInt(6, funcionario.getIdFuncao());
 
             int linhasAfetadas = ps.executeUpdate();
+
             if (linhasAfetadas > 0) {
+                // Tenta buscar o ID gerado para atualizar o objeto antes de retornar
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) {
                         funcionario.setId(rs.getInt(1));
                     }
                 }
-                return funcionario;
+                return funcionario; // Retorna o objeto de sucesso com o novo ID
             }
         } catch (SQLException e) {
-            System.err.println("Erro ao salvar funcionário: " + e.getMessage());
+            System.err.println("Erro ao salvar funcionário (SQL): " + e.getMessage());
         }
-        return null;
+        return null; // Retorna null em caso de falha ou exceção
     }
 
     /**
