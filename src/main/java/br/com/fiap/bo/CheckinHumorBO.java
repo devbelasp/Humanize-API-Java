@@ -5,7 +5,7 @@ import br.com.fiap.dao.FuncionarioDAO;
 import br.com.fiap.to.CheckinHumorTO;
 import br.com.fiap.to.FuncionarioTO;
 import br.com.fiap.to.RelatorioHumorTO;
-import br.com.fiap.to.CheckinHumorAnonimoTO; // NOVO IMPORT
+import br.com.fiap.to.CheckinHumorAnonimoTO;
 import br.com.fiap.exception.AcessoNegadoException;
 
 import java.util.ArrayList;

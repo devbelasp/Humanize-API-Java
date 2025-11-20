@@ -23,7 +23,7 @@ public class FuncionarioBO {
     private static final int ID_FUNCAO_RH = 5;
 
     /**
-     * Implementa a REGRA: Apenas usuários com ID_FUNCAO = 5 (RH) podem cadastrar novos funcionários.
+     * Implementa a REGRA: Apenas usuários com ID_FUNCAO = 5 (RH) podem cadastrar novos funcionários do App.
      */
     public FuncionarioTO cadastrarNovoFuncionario(FuncionarioTO novoFuncionario, int solicitanteId)
             throws AcessoNegadoException, RuntimeException {

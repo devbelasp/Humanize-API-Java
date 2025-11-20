@@ -1,16 +1,29 @@
 package br.com.fiap.to;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 /**
  * Representa uma Função ou Perfil de Cargo (Role) dentro da empresa.
- * Usado para definir o nível de acesso (Gestor, RH, Padrão) e para a FK no cadastro de funcionários.
+ * Usado para definir o nível de acesso (Gestor, RH, Padrão) e para a FK no
+ * cadastro de funcionários.
  */
 public class FuncaoTO {
+    /**
+     * ID único da Função (PK: ID_FUNCAO).
+     */
+    @NotNull(message = "O ID da função não pode ser nulo.")
+    private int id;
 
-    private int id; // Corresponde à coluna ID_FUNCAO
-    private String nome; // Corresponde à coluna NM_FUNCAO
+    /**
+     * Nome do Perfil/Cargo (NM_FUNCAO).
+     */
+    @NotBlank(message = "O nome da função é obrigatório.")
+    @Size(max = 50, message = "O nome da função deve ter no máximo 50 caracteres.")
+    private String nome;
 
     // Construtores
-
     public FuncaoTO() {
     }
 
@@ -20,7 +33,6 @@ public class FuncaoTO {
     }
 
     // Getters e Setters
-
     public int getId() {
         return id;
     }

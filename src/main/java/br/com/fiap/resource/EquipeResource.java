@@ -2,6 +2,7 @@ package br.com.fiap.resource;
 
 import br.com.fiap.bo.EquipeBO;
 import br.com.fiap.to.EquipeTO;
+
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -11,7 +12,7 @@ import java.util.ArrayList;
 
 /**
  * Gerencia o endpoint RESTful (/equipes) para a entidade Equipe.
- * Implementa apenas a consulta (GET) para retornar a lista de referência.
+ * Implementa apenas a consulta (GET) para retornar a lista de referência (dropdowns/seleções).
  */
 @Path("/equipes")
 public class EquipeResource {
@@ -26,7 +27,7 @@ public class EquipeResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAll() {
-        ArrayList<EquipeTO> lista = bo.findAll();
+        ArrayList<EquipeTO> lista = bo.findAll(); // Busca a lista completa de equipes
 
         if (lista != null && !lista.isEmpty()) {
             // Sucesso: 200 OK
