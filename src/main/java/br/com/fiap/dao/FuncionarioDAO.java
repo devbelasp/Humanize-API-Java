@@ -4,10 +4,17 @@ import br.com.fiap.to.FuncionarioTO;
 import java.sql.*;
 import java.util.ArrayList;
 
+/**
+ * Data Access Object para a entidade Funcionário.
+ * Gerencia todas as operações de persistência (CRUD) e autenticação na tabela T_H_FUNCIONARIO.
+ */
 public class FuncionarioDAO {
 
     /**
-     * Método auxiliar para mapear o ResultSet para o Objeto FuncionarioTO.
+     * Método auxiliar para mapear um ResultSet para um objeto FuncionarioTO.
+     * @param rs O ResultSet contendo os dados da consulta.
+     * @return Um objeto FuncionarioTO preenchido.
+     * @throws SQLException Se ocorrer erro ao acessar os dados do ResultSet.
      */
     private FuncionarioTO mapResultSetToTO(ResultSet rs) throws SQLException {
         FuncionarioTO funcionario = new FuncionarioTO();
@@ -25,7 +32,12 @@ public class FuncionarioDAO {
         return funcionario;
     }
 
-
+    /**
+     * Realiza a autenticação de um funcionário verificando e-mail e senha.
+     * @param email O e-mail do funcionário.
+     * @param senha A senha do funcionário.
+     * @return O objeto FuncionarioTO se as credenciais forem válidas, ou null caso contrário.
+     */
     public FuncionarioTO buscarPorLogin(String email, String senha) {
         String sql = "SELECT * FROM T_H_FUNCIONARIO WHERE EM_FUNCIONARIO = ? AND DS_SENHA = ?";
         try (Connection conn = ConnectionFactory.getConnection();
@@ -43,6 +55,11 @@ public class FuncionarioDAO {
         return null;
     }
 
+    /**
+     * Busca um funcionário pelo seu endereço de e-mail (utilizado para validar unicidade).
+     * @param email O e-mail a ser pesquisado.
+     * @return O objeto FuncionarioTO encontrado ou null.
+     */
     public FuncionarioTO findByEmail(String email) {
         String sql = "SELECT * FROM T_H_FUNCIONARIO WHERE EM_FUNCIONARIO = ?";
 
@@ -61,7 +78,9 @@ public class FuncionarioDAO {
     }
 
     /**
-     * Salva um novo Funcionário no banco de dados, recuperando o ID gerado.
+     * Salva um novo funcionário no banco de dados.
+     * @param funcionario O objeto FuncionarioTO com os dados a serem salvos.
+     * @return O objeto salvo com o ID gerado preenchido, ou null em caso de erro.
      */
     public FuncionarioTO save(FuncionarioTO funcionario) {
         String sql = "INSERT INTO T_H_FUNCIONARIO (ID_FUNC, NM_FUNCIONARIO, EM_FUNCIONARIO, DS_SENHA, DT_CONTRATACAO, ID_EQUIPE, ID_FUNCAO) " +
@@ -93,6 +112,10 @@ public class FuncionarioDAO {
         return null;
     }
 
+    /**
+     * Retorna a lista de todos os funcionários cadastrados.
+     * @return Uma lista de objetos FuncionarioTO.
+     */
     public ArrayList<FuncionarioTO> findAll() {
         ArrayList<FuncionarioTO> lista = new ArrayList<>();
         String sql = "SELECT * FROM T_H_FUNCIONARIO ORDER BY ID_FUNC";
@@ -110,6 +133,11 @@ public class FuncionarioDAO {
         return lista;
     }
 
+    /**
+     * Busca um funcionário pelo seu ID (Chave Primária).
+     * @param id O ID do funcionário.
+     * @return O objeto FuncionarioTO encontrado ou null.
+     */
     public FuncionarioTO findByCodigo(int id) {
         String sql = "SELECT * FROM T_H_FUNCIONARIO WHERE ID_FUNC = ?";
 
@@ -129,6 +157,11 @@ public class FuncionarioDAO {
         return null;
     }
 
+    /**
+     * Atualiza os dados de um funcionário existente.
+     * @param funcionario O objeto com os dados atualizados.
+     * @return O objeto atualizado ou null em caso de falha.
+     */
     public FuncionarioTO update(FuncionarioTO funcionario) {
         String sql = "UPDATE T_H_FUNCIONARIO SET NM_FUNCIONARIO = ?, EM_FUNCIONARIO = ?, DS_SENHA = ?, DT_CONTRATACAO = ?, ID_EQUIPE = ?, ID_FUNCAO = ? WHERE ID_FUNC = ?";
 
@@ -152,6 +185,11 @@ public class FuncionarioDAO {
         return null;
     }
 
+    /**
+     * Exclui um funcionário pelo seu ID.
+     * @param id O ID do funcionário a ser excluído.
+     * @return true se a exclusão foi bem-sucedida, false caso contrário.
+     */
     public boolean delete(int id) {
         String sql = "DELETE FROM T_H_FUNCIONARIO WHERE ID_FUNC = ?";
 
@@ -167,6 +205,11 @@ public class FuncionarioDAO {
         }
     }
 
+    /**
+     * Exclui todos os recursos favoritos associados a um funcionário.
+     * Utilizado para garantir a integridade referencial antes de excluir o funcionário.
+     * @param funcionarioId O ID do funcionário.
+     */
     public void deleteRecursosAssociados(int funcionarioId) {
         String sql = "DELETE FROM T_H_FUNC_RECURSO WHERE ID_FUNC = ?";
 

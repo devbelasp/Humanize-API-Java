@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Email;
  */
 public class LoginTO {
 
-    // Adicionado @Email para uma validação de formato de e-mail mais robusta
     @NotBlank(message = "O email é obrigatório.")
     @Email(message = "O formato do e-mail é inválido.")
     private String email;

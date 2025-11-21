@@ -59,7 +59,6 @@ public class CheckinHumorDAO {
 
     /**
      * Busca um check-in específico pelo ID do funcionário e data.
-     * Útil para validar duplicidade diária.
      */
     public CheckinHumorTO findByFuncionarioAndDate(int funcionarioId, LocalDate data) {
         CheckinHumorTO checkin = null;
@@ -175,7 +174,6 @@ public class CheckinHumorDAO {
 
     /**
      * Exclui todos os registros de check-in de um funcionário específico.
-     * Útil para limpeza de dados antes de excluir um funcionário (Cascade manual).
      */
     public void deleteByFuncionarioId(int funcionarioId) {
         String sql = "DELETE FROM T_H_HUMOR WHERE ID_FUNC = ?";

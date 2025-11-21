@@ -17,25 +17,24 @@ public class FuncionarioBO {
 
     private final FuncionarioDAO funcionarioDAO = new FuncionarioDAO();
     private final FuncionarioRecursoDAO funcRecursoDAO = new FuncionarioRecursoDAO();
-    // Adicionei o DAO de Checkin para poder limpar o histórico ao excluir
     private final CheckinHumorDAO checkinDAO = new CheckinHumorDAO();
 
     private static final int ID_FUNCAO_RH = 5;
 
     /**
-     * Implementa a REGRA: Apenas usuários com ID_FUNCAO = 5 (RH) podem cadastrar novos funcionários do App.
+     * Implementa a REGRA: Apenas usuários com ID_FUNCAO = 5 (RH) podem cadastrar novos funcionários.
      */
     public FuncionarioTO cadastrarNovoFuncionario(FuncionarioTO novoFuncionario, int solicitanteId)
             throws AcessoNegadoException, RuntimeException {
 
-        // Validar Permissão do Solicitante
+        // Valida Permissão do Solicitante
         FuncionarioTO solicitante = funcionarioDAO.findByCodigo(solicitanteId);
 
         if (solicitante == null || solicitante.getIdFuncao() != ID_FUNCAO_RH) {
             throw new AcessoNegadoException("Acesso negado. Apenas usuários do RH podem realizar o cadastro de novos funcionários.");
         }
 
-        // Aplicar Regras de Negócio de Dados (Unicidade do E-mail)
+        // Aplica Regras de Negócio de Dados (Unicidade do E-mail)
         if (funcionarioDAO.findByEmail(novoFuncionario.getEmail()) != null) {
             throw new RuntimeException("O e-mail informado já está cadastrado.");
         }

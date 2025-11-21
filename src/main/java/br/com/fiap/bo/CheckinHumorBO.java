@@ -33,7 +33,7 @@ public class CheckinHumorBO {
         );
 
         if (checkinExistente != null) {
-            return null; // Retorna null se houver duplicidade (tratado como 400 no Resource)
+            return null; // Retorna null se houver duplicidade
         }
         return dao.save(checkin);
     }
@@ -45,9 +45,9 @@ public class CheckinHumorBO {
      * @return O histórico completo de Check-ins (Anonimizado).
      * @throws AcessoNegadoException Se o solicitante não for do RH.
      */
-    public ArrayList<CheckinHumorAnonimoTO> findAllAnonimo(int solicitanteId) throws AcessoNegadoException { // TIPO DE RETORNO ALTERADO
+    public ArrayList<CheckinHumorAnonimoTO> findAllAnonimo(int solicitanteId) throws AcessoNegadoException {
 
-        // Validar Permissão do Solicitante
+        // Valida Permissão do Solicitante
         FuncionarioTO solicitante = funcionarioDAO.findByCodigo(solicitanteId);
 
         if (solicitante == null || solicitante.getIdFuncao() != ID_FUNCAO_RH) {
